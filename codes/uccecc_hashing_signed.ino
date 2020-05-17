@@ -2,15 +2,6 @@
 #include "sha256.h"
 #define NELEMS(x)  (sizeof(x) / sizeof((x)[0]))
 
-void printHash(uint8_t* hash) {
-  int i;
-  for (i=0; i<32; i++) {
-    Serial.print("0123456789abcdef"[hash[i]>>4]);
-    Serial.print("0123456789abcdef"[hash[i]&0xf]);
-  }
-  Serial.println();
-}
-
 
 
 extern "C" {
@@ -178,7 +169,7 @@ Serial.println("---");
         {
                 if (sign2[i]<0x10) { Serial.print('0'); }
                 Serial.print(sign2[i], HEX);
-        }de
+        }
 
         Serial.println("---");
         Serial.printf("Check against public1 = %d\n", uECC_verify(public1, encoded, hash_size,sign2, curve));
