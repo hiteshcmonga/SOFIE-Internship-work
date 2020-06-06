@@ -57,6 +57,16 @@ async function createvc ()
     };
     
     const signedVC = await vc.issue({credential, suite});
-    console.log(signedVC);
+   // console.log(signedVC);
+    return signedVC
 }
 createvc() 
+
+async function createvp(){
+const verifiableCredential = await createvc()  //array of VCs also allowed
+const presentation = vc.createPresentation({
+  verifiableCredential
+}); //can add id and holder as optional parameters here 
+console.log(JSON.stringify(presentation, null, 2));}
+createvp()
+
