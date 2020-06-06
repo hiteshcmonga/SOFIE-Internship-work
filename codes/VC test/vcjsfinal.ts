@@ -1,18 +1,20 @@
 import { Resolver } from 'did-resolver'
 import { resolver as naclDidResolver } from 'nacl-did'
+import { createIdentity, loadIdentity } from 'nacl-did'
 
+const id = createIdentity().did
 const didResolver = new Resolver({ nacl: naclDidResolver })
-didResolver.resolve('did:nacl:Md8JiMIwsapml_FtQ2ngnGftNP5UmVCAUuhnLyAsPxI').then(doc => console.log)
+didResolver.resolve(id).then(doc => console.log)
 
 //resolver function for did did:nacl:Md8JiMIwsapml_FtQ2ngnGftNP5UmVCAUuhnLyAsPxI
 async function resolve() {
-const controller = await didResolver.resolve('did:nacl:Md8JiMIwsapml_FtQ2ngnGftNP5UmVCAUuhnLyAsPxI')
+const controller = await didResolver.resolve(id)
 //console.log(doc)} 
 return controller
 }
 resolve()
 
-const id= 'did:nacl:Md8JiMIwsapml_FtQ2ngnGftNP5UmVCAUuhnLyAsPxI'
+//const id= 'did:nacl:Md8JiMIwsapml_FtQ2ngnGftNP5UmVCAUuhnLyAsPxI'
 
 //function for generating suite using id and controller document as parameters
 async function gensuite(){
@@ -27,7 +29,7 @@ const suite = new Ed25519Signature2018({
   key: keyPair
 });
 return suite
-//console.log(suite) 
+console.log(suite) 
 //console.log(keypair)
 }
 gensuite()
@@ -49,7 +51,7 @@ async function createvc ()
       "issuer": "https://example.edu/issuers/565049",
       "issuanceDate": "2010-01-01T19:23:24Z",
       "credentialSubject": {
-        "id": "did:nacl:Md8JiMIwsapml_FtQ2ngnGftNP5UmVCAUuhnLyAsPxI",
+        "id": id,
         "alumniOf": "Example University"
       }
     };
@@ -57,4 +59,4 @@ async function createvc ()
     const signedVC = await vc.issue({credential, suite});
     console.log(signedVC);
 }
-createvc()
+createvc() 
