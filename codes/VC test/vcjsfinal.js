@@ -38,15 +38,17 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 exports.__esModule = true;
 var did_resolver_1 = require("did-resolver");
 var nacl_did_1 = require("nacl-did");
+var nacl_did_2 = require("nacl-did");
+var id = nacl_did_2.createIdentity().did;
 var didResolver = new did_resolver_1.Resolver({ nacl: nacl_did_1.resolver });
-didResolver.resolve('did:nacl:Md8JiMIwsapml_FtQ2ngnGftNP5UmVCAUuhnLyAsPxI').then(function (doc) { return console.log; });
+didResolver.resolve(id).then(function (doc) { return console.log; });
 //resolver function for did did:nacl:Md8JiMIwsapml_FtQ2ngnGftNP5UmVCAUuhnLyAsPxI
 function resolve() {
     return __awaiter(this, void 0, void 0, function () {
         var controller;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, didResolver.resolve('did:nacl:Md8JiMIwsapml_FtQ2ngnGftNP5UmVCAUuhnLyAsPxI')
+                case 0: return [4 /*yield*/, didResolver.resolve(id)
                     //console.log(doc)} 
                 ];
                 case 1:
@@ -58,7 +60,7 @@ function resolve() {
     });
 }
 resolve();
-var id = 'did:nacl:Md8JiMIwsapml_FtQ2ngnGftNP5UmVCAUuhnLyAsPxI';
+//const id= 'did:nacl:Md8JiMIwsapml_FtQ2ngnGftNP5UmVCAUuhnLyAsPxI'
 //function for generating suite using id and controller document as parameters
 function gensuite() {
     return __awaiter(this, void 0, void 0, function () {
@@ -79,10 +81,7 @@ function gensuite() {
                         verificationMethod: keyPair.id,
                         key: keyPair
                     });
-                    return [2 /*return*/, suite
-                        //console.log(suite) 
-                        //console.log(keypair)
-                    ];
+                    return [2 /*return*/, suite];
             }
         });
     });
@@ -111,7 +110,7 @@ function createvc() {
                         "issuer": "https://example.edu/issuers/565049",
                         "issuanceDate": "2010-01-01T19:23:24Z",
                         "credentialSubject": {
-                            "id": "did:nacl:Md8JiMIwsapml_FtQ2ngnGftNP5UmVCAUuhnLyAsPxI",
+                            "id": id,
                             "alumniOf": "Example University"
                         }
                     };
