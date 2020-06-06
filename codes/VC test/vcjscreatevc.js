@@ -90,14 +90,12 @@ gensuite();
 //function to create vc with credentials(defined in-function) and suite as parameters
 function createvc() {
     return __awaiter(this, void 0, void 0, function () {
-        var vc, suite, credential, signedVC;
+        var suite, credential, signedVC;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0:
-                    vc = require('vc-js');
-                    return [4 /*yield*/, gensuite()
-                        // Sample unsigned credential
-                    ];
+                case 0: return [4 /*yield*/, gensuite()
+                    // Sample unsigned credential
+                ];
                 case 1:
                     suite = _a.sent();
                     credential = {
@@ -117,10 +115,28 @@ function createvc() {
                     return [4 /*yield*/, vc.issue({ credential: credential, suite: suite })];
                 case 2:
                     signedVC = _a.sent();
-                    console.log(signedVC);
-                    return [2 /*return*/];
+                    return [2 /*return*/, signedVC];
             }
         });
     });
 }
 createvc();
+function createvp() {
+    return __awaiter(this, void 0, void 0, function () {
+        var verifiableCredential, presentation;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, createvc()];
+                case 1:
+                    verifiableCredential = _a.sent();
+                    presentation = vc.createPresentation({
+                        verifiableCredential: verifiableCredential
+                    });
+                    console.log(JSON.stringify(presentation, null, 2));
+                    return [2 /*return*/];
+            }
+        });
+    });
+}
+createvp();
+
