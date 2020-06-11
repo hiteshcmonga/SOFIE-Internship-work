@@ -12,3 +12,5 @@ Hashing Algorithm used: SHA-256
 DID resolver used : nacl did resolver and manager (https://github.com/uport-project/nacl-did)
 
 For VC implementation : VC-JS (https://github.com/digitalbazaar/vc-js)
+
+For Proofs: https://github.com/digitalbazaar/jsonld-signatures
