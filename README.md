@@ -14,3 +14,5 @@ DID resolver used : nacl did resolver and manager (https://github.com/uport-proj
 For VC implementation : VC-JS (https://github.com/digitalbazaar/vc-js)
 
 For Proofs: https://github.com/digitalbazaar/jsonld-signatures
+
+For DocumentLoader: https://github.com/digitalbazaar/jsonld.js
