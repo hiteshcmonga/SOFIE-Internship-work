@@ -17,6 +17,8 @@ Similar functions as mentioned in  above section with WolfSSL library being used
 ## Verifiable credentials Part (tested on local machine)
 Verifiable credentials implementation using ```bash vc-js```and other libraries. Issuer and subject are being considered different entities so as to facilitate the required implementation of credentials. A customised documentLoader has been made to derefence the required URLs. Verifiable credential has been signed using  ```jsonld-signatures``` and it is verified against the issuer suite and the Verifiable presentations take both the arrays of ```issuer_suite``` and ``` subject_suite```.
 
+Running the script: npm install the required dependencies and then  ```tsc vcjsfinal.ts``` and ```node vcjsfinal.js```
+
 <b>Libraries used:</b>
 - [nacl did resolver and manager](https://github.com/uport-project/nacl-did)
 - [vc-js](https://github.com/digitalbazaar/vc-js)
@@ -29,3 +31,4 @@ Verifiable credentials implementation using ```bash vc-js```and other libraries.
 ## screenshots and results
 
 ![uECC results](https://github.com/hiteshcmonga/SOFIE-Internship-work/blob/master/results/uecclatest.png)
+
