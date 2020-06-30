@@ -29,6 +29,12 @@ Running the script: npm install the required dependencies and then  ```tsc vcjsf
 - [ ] Add device info and other hardware parameters
 
 ## screenshots and results
-
+uECC results:
 ![uECC results](https://github.com/hiteshcmonga/SOFIE-Internship-work/blob/master/results/uecclatest.png)
+verifiable credential:
+![Verifiable credentail](https://github.com/hiteshcmonga/SOFIE-Internship-work/blob/master/results/createvc.png)
+verifiable presentation:
+![verifiable presentatiton](https://github.com/hiteshcmonga/SOFIE-Internship-work/blob/master/results/createvp.png)
+
+
 
