@@ -26,6 +26,6 @@ Verifiable credentials implementation using ```bash vc-js```and other libraries.
 - [ ] implementing SOFIE custom context in credentials
 - [ ] Add device info and other hardware parameters
 
-##screenshots and results
+## screenshots and results
 
 ![uECC results](https://github.com/hiteshcmonga/SOFIE-Internship-work/blob/master/results/uecclatest.png)
