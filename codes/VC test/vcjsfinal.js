@@ -36,47 +36,173 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
+var fs = require("fs");
+var extendContextLoader = require('jsonld-signatures').extendContextLoader;
+var vc = require('vc-js');
+//const myCustomContext = require('./myCustomContext');
+var v1 = require('./contexts/v1.json');
+var v1ex = require('./contexts/v1example.json');
+var odrl = require('./contexts/odrl.json');
+var didv1 = require('./contexts/did-v1.json');
 var did_resolver_1 = require("did-resolver");
 var nacl_did_1 = require("nacl-did");
 var nacl_did_2 = require("nacl-did");
-var id = nacl_did_2.createIdentity().did;
 var didResolver = new did_resolver_1.Resolver({ nacl: nacl_did_1.resolver });
-didResolver.resolve(id).then(function (doc) { return console.log; });
-//resolver function for did did:nacl:Md8JiMIwsapml_FtQ2ngnGftNP5UmVCAUuhnLyAsPxI
-function resolve() {
+var issuerid = nacl_did_2.createIdentity().did;
+var subjectid = nacl_did_2.createIdentity().did;
+var documentLoader = extendContextLoader(function (url) { return __awaiter(void 0, void 0, void 0, function () {
+    var controller;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                console.log("Looking for " + url);
+                if (url == 'https://www.w3.org/2018/credentials/v1') {
+                    return [2 /*return*/, {
+                            contextUrl: null,
+                            documentUrl: url,
+                            // this did key's context should resolve
+                            // to the latest did-context
+                            document: v1
+                        }];
+                }
+                if (url == 'https://www.w3.org/2018/credentials/examples/v1') {
+                    return [2 /*return*/, {
+                            contextUrl: null,
+                            documentUrl: url,
+                            // this did key's context should resolve
+                            // to the latest did-context
+                            document: v1ex
+                        }];
+                }
+                if (url == 'https://www.w3.org/ns/odrl.jsonld') {
+                    return [2 /*return*/, {
+                            contextUrl: null,
+                            documentUrl: url,
+                            // this did key's context should resolve
+                            // to the latest did-context
+                            document: odrl
+                        }];
+                }
+                if (url == 'https://w3id.org/did/v1') {
+                    return [2 /*return*/, {
+                            contextUrl: null,
+                            documentUrl: url,
+                            // this did key's context should resolve
+                            // to the latest did-context
+                            document: didv1
+                        }];
+                }
+                if (!url.startsWith('did:nacl:')) return [3 /*break*/, 2];
+                return [4 /*yield*/, didResolver.resolve(url)];
+            case 1:
+                controller = _a.sent();
+                return [2 /*return*/, {
+                        contextUrl: null,
+                        documentUrl: url,
+                        document: controller
+                    }];
+            case 2: throw new Error('No custom context support for ' + url);
+        }
+    });
+}); });
+//const documentLoader = extendContextLoader(async url => {
+//}
+function subject() {
     return __awaiter(this, void 0, void 0, function () {
-        var controller;
+        var sdoc, subject;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, didResolver.resolve(id)
-                    //console.log(doc)} 
-                ];
+                case 0: return [4 /*yield*/, didResolver.resolve(subjectid)];
                 case 1:
-                    controller = _a.sent();
-                    //console.log(doc)} 
-                    return [2 /*return*/, controller];
+                    sdoc = _a.sent();
+                    subject = {
+                        '@context': [
+                            "https://w3id.org/did/v1",
+                        ],
+                        id: subjectid,
+                        publicKey: sdoc.publicKey
+                    };
+                    return [2 /*return*/, subject];
             }
         });
     });
 }
-resolve();
-//const id= 'did:nacl:Md8JiMIwsapml_FtQ2ngnGftNP5UmVCAUuhnLyAsPxI'
-//function for generating suite using id and controller document as parameters
-function gensuite() {
+subject();
+function issuer() {
     return __awaiter(this, void 0, void 0, function () {
-        var _a, Ed25519KeyPair, Ed25519Signature2018, controller, keyPair, suite;
+        var sdoc, idoc, sub, issuer;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, didResolver.resolve(subjectid)];
+                case 1:
+                    sdoc = _a.sent();
+                    return [4 /*yield*/, didResolver.resolve(issuerid)];
+                case 2:
+                    idoc = _a.sent();
+                    return [4 /*yield*/, subject()];
+                case 3:
+                    sub = _a.sent();
+                    issuer = {
+                        '@context': [
+                            "https://w3id.org/did/v1",
+                            sub
+                        ],
+                        id: issuerid,
+                        publicKey: idoc.publicKey,
+                        assertionMethod: idoc.id,
+                        authentication: sdoc.id
+                    };
+                    return [2 /*return*/, issuer];
+            }
+        });
+    });
+}
+issuer();
+function issuersuite() {
+    return __awaiter(this, void 0, void 0, function () {
+        var iss, _a, Ed25519KeyPair, Ed25519Signature2018, keyPair, idoc, suite;
         return __generator(this, function (_b) {
             switch (_b.label) {
-                case 0:
-                    _a = require('jsonld-signatures'), Ed25519KeyPair = _a.Ed25519KeyPair, Ed25519Signature2018 = _a.suites.Ed25519Signature2018;
-                    return [4 /*yield*/, resolve()];
+                case 0: return [4 /*yield*/, issuer()];
                 case 1:
-                    controller = _b.sent();
+                    iss = _b.sent();
+                    _a = require('jsonld-signatures'), Ed25519KeyPair = _a.Ed25519KeyPair, Ed25519Signature2018 = _a.suites.Ed25519Signature2018;
                     return [4 /*yield*/, Ed25519KeyPair.generate()];
                 case 2:
                     keyPair = _b.sent();
-                    keyPair.id = id;
-                    keyPair.controller = controller;
+                    return [4 /*yield*/, didResolver.resolve(issuerid)];
+                case 3:
+                    idoc = _b.sent();
+                    keyPair.id = iss.assertionMethod;
+                    keyPair.controller = idoc;
+                    suite = new Ed25519Signature2018({
+                        verificationMethod: keyPair.id,
+                        key: keyPair
+                    });
+                    // console.log(JSON.stringify(suite, null, 2));
+                    return [2 /*return*/, suite];
+            }
+        });
+    });
+}
+issuersuite();
+function subjectsuite() {
+    return __awaiter(this, void 0, void 0, function () {
+        var sub, sdoc, _a, Ed25519KeyPair, Ed25519Signature2018, keyPair, suite;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0: return [4 /*yield*/, subject()];
+                case 1:
+                    sub = _b.sent();
+                    return [4 /*yield*/, didResolver.resolve(subjectid)];
+                case 2:
+                    sdoc = _b.sent();
+                    _a = require('jsonld-signatures'), Ed25519KeyPair = _a.Ed25519KeyPair, Ed25519Signature2018 = _a.suites.Ed25519Signature2018;
+                    return [4 /*yield*/, Ed25519KeyPair.generate()];
+                case 3:
+                    keyPair = _b.sent();
+                    keyPair.id = sub.id;
+                    keyPair.controller = sdoc;
                     suite = new Ed25519Signature2018({
                         verificationMethod: keyPair.id,
                         key: keyPair
@@ -86,57 +212,62 @@ function gensuite() {
         });
     });
 }
-gensuite();
-//function to create vc with credentials(defined in-function) and suite as parameters
-function createvc() {
+subjectsuite();
+function credentials() {
     return __awaiter(this, void 0, void 0, function () {
-        var suite, credential, signedVC;
+        var sdoc, idoc, issuercontroller, credential, issuer_suite, subject_suite, signedVC, vcresult, verifiableCredential, presentation, challenge, domain, vp, vpresult;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, gensuite()
-                    // Sample unsigned credential
-                ];
+                case 0: return [4 /*yield*/, didResolver.resolve(subjectid)];
                 case 1:
-                    suite = _a.sent();
+                    sdoc = _a.sent();
+                    return [4 /*yield*/, didResolver.resolve(issuerid)];
+                case 2:
+                    idoc = _a.sent();
+                    return [4 /*yield*/, issuer()];
+                case 3:
+                    issuercontroller = _a.sent();
                     credential = {
                         "@context": [
                             "https://www.w3.org/2018/credentials/v1",
                             "https://www.w3.org/2018/credentials/examples/v1"
                         ],
-                        "id": "https://example.com/credentials/1872",
-                        "type": ["VerifiableCredential", "AlumniCredential"],
-                        "issuer": "https://example.edu/issuers/565049",
+                        "type": ["VerifiableCredential", "IoTAccessRightsCredential"],
                         "issuanceDate": "2010-01-01T19:23:24Z",
+                        "issuer": {
+                            "id": idoc.id,
+                            "name": "Owner"
+                        },
                         "credentialSubject": {
-                            "id": id,
-                            "alumniOf": "Example University"
+                            "id": sdoc.id
                         }
                     };
-                    return [4 /*yield*/, vc.issue({ credential: credential, suite: suite })];
-                case 2:
+                    return [4 /*yield*/, issuersuite()];
+                case 4:
+                    issuer_suite = _a.sent();
+                    return [4 /*yield*/, subjectsuite()];
+                case 5:
+                    subject_suite = _a.sent();
+                    return [4 /*yield*/, vc.issue({ credential: credential, suite: issuer_suite })];
+                case 6:
                     signedVC = _a.sent();
-                    return [2 /*return*/, signedVC];
-            }
-        });
-    });
-}
-createvc();
-function createvp() {
-    return __awaiter(this, void 0, void 0, function () {
-        var verifiableCredential, presentation;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0: return [4 /*yield*/, createvc()];
-                case 1:
-                    verifiableCredential = _a.sent();
-                    presentation = vc.createPresentation({
-                        verifiableCredential: verifiableCredential
-                    });
-                    console.log(JSON.stringify(presentation, null, 2));
+                    return [4 /*yield*/, vc.verifyCredential({ credential: signedVC, documentLoader: documentLoader, suite: issuer_suite, controller: issuercontroller })];
+                case 7:
+                    vcresult = _a.sent();
+                    verifiableCredential = [signedVC];
+                    presentation = vc.createPresentation({ verifiableCredential: verifiableCredential });
+                    challenge = "1f44d55f-f161-4938-a659-f8026467f126";
+                    domain = "4jt78h47fh47";
+                    return [4 /*yield*/, vc.signPresentation({ presentation: presentation, suite: subject_suite, challenge: challenge, domain: domain })];
+                case 8:
+                    vp = _a.sent();
+                    return [4 /*yield*/, vc.verify({ presentation: vp, documentLoader: documentLoader, challenge: challenge, domain: domain, suite: [issuer_suite, subject_suite], controller: issuercontroller })];
+                case 9:
+                    vpresult = _a.sent();
+                    console.log(JSON.stringify(vpresult, null, 2));
                     return [2 /*return*/];
             }
         });
     });
 }
-createvp();
-
+credentials();
