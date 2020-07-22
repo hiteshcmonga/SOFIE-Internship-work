@@ -6,6 +6,20 @@ const v1 = require('./contexts/v1.json');
 const v1ex= require('./contexts/v1example.json');
 const odrl= require('./contexts/odrl.json'); 
 const didv1= require('./contexts/did-v1.json');
+const express = require('express')
+const app = express()
+const port = 3000
+
+app.use(express.urlencoded())
+const bodyParser = require('body-parser');
+app.use(bodyParser());
+
+
+app.get('/verify',async(req,res) => {
+    res.sendFile(__dirname + '/credentialVerify.html'); 
+    })
+
+//html file will also be added. This was just to show the various subdomains I will add on the server 
 
 import { Resolver } from 'did-resolver'
 import { resolver as naclDidResolver } from 'nacl-did'
