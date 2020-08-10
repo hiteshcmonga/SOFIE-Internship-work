@@ -24,9 +24,22 @@ Running the script: npm install the required dependencies and then  ```tsc vcjsf
 - [vc-js](https://github.com/digitalbazaar/vc-js)
 - [jsonld-signatures](https://github.com/digitalbazaar/jsonld-signatures)
 
-<b>Tasks list for verifiable part</b>
-- [ ] implementing SOFIE custom context in credentials
-- [ ] Add device info and other hardware parameters
+## Flow and Implementation details
+
+For serialising the json data and loading the esp32 device certificates onto local webserver use ```serializejson.ino``` , the webserver is HTTP type and not secure, a HTTPS server for the same purpose can be implemented in future. The certificates are then fetched by client (added functionality in ```vcjsfinal.ts```) and stored in local file and then certificates are verified by client. The client then sends its credentials using POST request to local webserver and the client credentials are verified by ESP32 using crypto library by verifying signatures.
+
+
+##  Task Lists and progress
+- [X] Serialising JSON Data of ESP32
+- [X] Sending ESP32 JSON Data to webserver
+- [X] Fetch ESP32 JSON Data and storing it in local file
+- [ ] parsing locally stored json file and verifying the ESP32 credentials
+- [X] POST client credentials 
+- [X] Parsing client credentials //code needs slight modification
+- [ ] verifying the signatures of client and sending feedback.
+- [ ] access control after mutual verification is done. 
+
+
 
 ## screenshots and results
 uECC results:
