@@ -6,20 +6,6 @@ const v1 = require('./contexts/v1.json');
 const v1ex= require('./contexts/v1example.json');
 const odrl= require('./contexts/odrl.json'); 
 const didv1= require('./contexts/did-v1.json');
-const express = require('express')
-const app = express()
-const port = 3000
-
-app.use(express.urlencoded())
-const bodyParser = require('body-parser');
-app.use(bodyParser());
-
-
-app.get('/verify',async(req,res) => {
-    res.sendFile(__dirname + '/credentialVerify.html'); 
-    })
-
-//html file will also be added. This was just to show the various subdomains I will add on the server 
 
 import { Resolver } from 'did-resolver'
 import { resolver as naclDidResolver } from 'nacl-did'
@@ -29,6 +15,17 @@ const didResolver = new Resolver({ nacl: naclDidResolver })
 //nacl ids of issuer and subject
 const issuerid = createIdentity().did
 const subjectid= createIdentity().did
+
+//fetching JSON data from ESP32 to verify device 
+const fetch = require("node-fetch");
+let url = 'http://192.168.43.4/credentials';
+fetch(url)
+.then(res => res.json())
+.then((out) => {
+    const jsonString = JSON.stringify(out, null, 2)
+    fs.writeFile('fetchjson.json', jsonString);
+})
+.catch(err => { throw err });
 
 //custom document Loader according to the required contexts
 
@@ -183,16 +180,27 @@ const credential = {
     const issuer_suite= await issuersuite()
     const subject_suite= await subjectsuite()
     const signedVC = await vc.issue({credential, suite:issuer_suite});
-    console.log(JSON.stringify(signedVC, null, 2));
+    //console.log(JSON.stringify(signedVC, null, 2));
     const vcresult = await vc.verifyCredential({credential:signedVC, documentLoader, suite:issuer_suite, controller:issuercontroller});
-    console.log(JSON.stringify(vcresult, null, 2));
+    //console.log(JSON.stringify(vcresult, null, 2));
     const verifiableCredential = [signedVC];
     const presentation = vc.createPresentation({verifiableCredential});
     const challenge = "1f44d55f-f161-4938-a659-f8026467f126"
     const domain = "4jt78h47fh47"
     const vp = await vc.signPresentation({presentation, suite:subject_suite, challenge,domain});
-    console.log(JSON.stringify(vp, null, 2))
+    //console.log(JSON.stringify(vp, null, 2))
     const vpresult = await vc.verify({presentation:vp, documentLoader, challenge,domain, suite:[issuer_suite, subject_suite], controller:issuercontroller});
-    console.log(JSON.stringify(vpresult, null, 2)) 
+    //console.log(JSON.stringify(vpresult, null, 2)) 
 }
 credentials()
+
+//not working properly, code needs to be updated
+async function verifyjsoncred(){
+const issuer_suite= await issuersuite()
+const issuercontroller= await issuer()  
+const readcred= fs.readFile('/home/hiteshcmonga/Desktop/JS/fetchjson.json').toString();
+let espcredentials = JSON.parse(readcred);
+const vcresult = await vc.verifyCredential({credential:espcredentials, documentLoader, suite:issuer_suite, controller:issuercontroller});
+}
+verifyjsoncred()
+
