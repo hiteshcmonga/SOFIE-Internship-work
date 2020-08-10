@@ -48,8 +48,19 @@ var did_resolver_1 = require("did-resolver");
 var nacl_did_1 = require("nacl-did");
 var nacl_did_2 = require("nacl-did");
 var didResolver = new did_resolver_1.Resolver({ nacl: nacl_did_1.resolver });
+//nacl ids of issuer and subject
 var issuerid = nacl_did_2.createIdentity().did;
 var subjectid = nacl_did_2.createIdentity().did;
+//fetching JSON data from ESP32 to verify device 
+var fetch = require("node-fetch");
+var url = 'http://192.168.43.4/credentials';
+fetch(url)
+    .then(function (res) { return res.json(); })
+    .then(function (out) {
+    var jsonString = JSON.stringify(out, null, 2);
+    fs.writeFile('fetchjson.json', jsonString);
+})["catch"](function (err) { throw err; });
+//custom document Loader according to the required contexts
 var documentLoader = extendContextLoader(function (url) { return __awaiter(void 0, void 0, void 0, function () {
     var controller;
     return __generator(this, function (_a) {
@@ -105,8 +116,7 @@ var documentLoader = extendContextLoader(function (url) { return __awaiter(void 
         }
     });
 }); });
-//const documentLoader = extendContextLoader(async url => {
-//}
+//customised subject document
 function subject() {
     return __awaiter(this, void 0, void 0, function () {
         var sdoc, subject;
@@ -128,6 +138,7 @@ function subject() {
     });
 }
 subject();
+//customised issuer function, since the nacl document does not have assertionmethod for verification
 function issuer() {
     return __awaiter(this, void 0, void 0, function () {
         var sdoc, idoc, sub, issuer;
@@ -158,6 +169,7 @@ function issuer() {
     });
 }
 issuer();
+//the issuer suite for signing VC      
 function issuersuite() {
     return __awaiter(this, void 0, void 0, function () {
         var iss, _a, Ed25519KeyPair, Ed25519Signature2018, keyPair, idoc, suite;
@@ -186,6 +198,7 @@ function issuersuite() {
     });
 }
 issuersuite();
+//the subject suite for signing VP
 function subjectsuite() {
     return __awaiter(this, void 0, void 0, function () {
         var sub, sdoc, _a, Ed25519KeyPair, Ed25519Signature2018, keyPair, suite;
@@ -213,6 +226,7 @@ function subjectsuite() {
     });
 }
 subjectsuite();
+//the function which creates and verifies our customised credentials and presentations
 function credentials() {
     return __awaiter(this, void 0, void 0, function () {
         var sdoc, idoc, issuercontroller, credential, issuer_suite, subject_suite, signedVC, vcresult, verifiableCredential, presentation, challenge, domain, vp, vpresult;
@@ -264,10 +278,32 @@ function credentials() {
                     return [4 /*yield*/, vc.verify({ presentation: vp, documentLoader: documentLoader, challenge: challenge, domain: domain, suite: [issuer_suite, subject_suite], controller: issuercontroller })];
                 case 9:
                     vpresult = _a.sent();
-                    console.log(JSON.stringify(vpresult, null, 2));
                     return [2 /*return*/];
             }
         });
     });
 }
 credentials();
+//not working properly, code needs to be updated
+function verifyjsoncred() {
+    return __awaiter(this, void 0, void 0, function () {
+        var issuer_suite, issuercontroller, readcred, espcredentials, vcresult;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, issuersuite()];
+                case 1:
+                    issuer_suite = _a.sent();
+                    return [4 /*yield*/, issuer()];
+                case 2:
+                    issuercontroller = _a.sent();
+                    readcred = fs.readFile('/home/hiteshcmonga/Desktop/JS/fetchjson.json').toString();
+                    espcredentials = JSON.parse(readcred);
+                    return [4 /*yield*/, vc.verifyCredential({ credential: espcredentials, documentLoader: documentLoader, suite: issuer_suite, controller: issuercontroller })];
+                case 3:
+                    vcresult = _a.sent();
+                    return [2 /*return*/];
+            }
+        });
+    });
+}
+verifyjsoncred();
