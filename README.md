@@ -14,15 +14,6 @@ Similar functions as mentioned in  above section with WolfSSL library being used
 - [wolfSSL]( https://github.com/wolfSSL/wolfssl
 )
 
-## Verifiable credentials Part (tested on local machine)
-Verifiable credentials implementation using ```vc-js```and other libraries. Issuer and subject are being considered different entities so as to facilitate the required implementation of credentials. A customised documentLoader has been made to derefence the required URLs. Verifiable credential has been signed using  ```jsonld-signatures``` and it is verified against the issuer suite and the Verifiable presentations take both the arrays of ```issuer_suite``` and ``` subject_suite```.
-
-Running the script: npm install the required dependencies and then  ```tsc vcjsfinal.ts``` and ```node vcjsfinal.js```
-
-<b>Libraries used:</b>
-- [nacl did resolver and manager](https://github.com/uport-project/nacl-did)
-- [vc-js](https://github.com/digitalbazaar/vc-js)
-- [jsonld-signatures](https://github.com/digitalbazaar/jsonld-signatures)
 
 ## Flow and Implementation details
 
@@ -38,6 +29,30 @@ For serialising the json data and loading the esp32 device certificates onto loc
 - [X] Parsing client credentials //code needs slight modification
 - [ ] verifying the signatures of client and sending feedback.
 - [ ] access control after mutual verification is done. 
+
+
+## Steps for implementation
+
+- Verifiable credentials Part (tested on local machine)
+Verifiable credentials implementation using ```vc-js```and other libraries. Issuer and subject are being considered different entities so as to facilitate the required implementation of credentials. A customised documentLoader has been made to derefence the required URLs. Verifiable credential has been signed using  ```jsonld-signatures``` and it is verified against the issuer suite and the Verifiable presentations take both the arrays of ```issuer_suite``` and ``` subject_suite```.
+
+Running the script: clone the repository and npm install the required dependencies and then  ```tsc vcjsfinal.ts``` and ```node vcjsfinal.js``` (files available at [vcjsfinal.ts](https://github.com/hiteshcmonga/SOFIE-Internship-work/blob/master/codes/VC%20test/vcjsfinal.ts) to implement verifiable credentials on local machine
+
+- Download the [arduino IDE](https://www.arduino.cc/en/main/software) and then choose ESP32 from the ```Tools->Boards->ESP32``` and then run the Serializejson.ino(https://github.com/hiteshcmonga/SOFIE-Internship-work/blob/master/codes/VC%20test/serializejson.ino) file to serialise the json credentials and to send the credentials on ESP32 server( the IP adress on which the credentials are available is available on the serial monitor, use IPadress/credentials(for example: 192.43.4/credentials) to access the credentials. These credentials will be verified in the  [vcjsfinal.ts](https://github.com/hiteshcmonga/SOFIE-Internship-work/blob/master/codes/VC%20test/vcjsfinal.ts) (I am working on its implementation) and to deserialize/ parsing operation can be done using (testparser.ino)[https://github.com/hiteshcmonga/SOFIE-Internship-work/blob/master/codes/VC%20test/testparser.ino] this file can also be executed in the same manner.
+-The implementation for verification of client certificates on ESP32 device is pending
+
+
+
+
+
+
+
+<b>Libraries used:</b>
+- [nacl did resolver and manager](https://github.com/uport-project/nacl-did)
+- [vc-js](https://github.com/digitalbazaar/vc-js)
+- [jsonld-signatures](https://github.com/digitalbazaar/jsonld-signatures)
+
+
 
 
 
