@@ -48,18 +48,6 @@ var did_resolver_1 = require("did-resolver");
 var nacl_did_1 = require("nacl-did");
 var nacl_did_2 = require("nacl-did");
 var didResolver = new did_resolver_1.Resolver({ nacl: nacl_did_1.resolver });
-//nacl ids of issuer and subject
-var issuerid = nacl_did_2.createIdentity().did;
-var subjectid = nacl_did_2.createIdentity().did;
-//fetching JSON data from ESP32 to verify device 
-var fetch = require("node-fetch");
-var url = 'http://192.168.43.4/credentials';
-fetch(url)
-    .then(function (res) { return res.json(); })
-    .then(function (out) {
-    var jsonString = JSON.stringify(out, null, 2);
-    fs.writeFile('fetchjson.json', jsonString);
-})["catch"](function (err) { throw err; });
 //custom document Loader according to the required contexts
 var documentLoader = extendContextLoader(function (url) { return __awaiter(void 0, void 0, void 0, function () {
     var controller;
@@ -116,7 +104,7 @@ var documentLoader = extendContextLoader(function (url) { return __awaiter(void 
         }
     });
 }); });
-//customised subject document
+var subjectid = nacl_did_2.createIdentity().did;
 function subject() {
     return __awaiter(this, void 0, void 0, function () {
         var sdoc, subject;
@@ -138,66 +126,6 @@ function subject() {
     });
 }
 subject();
-//customised issuer function, since the nacl document does not have assertionmethod for verification
-function issuer() {
-    return __awaiter(this, void 0, void 0, function () {
-        var sdoc, idoc, sub, issuer;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0: return [4 /*yield*/, didResolver.resolve(subjectid)];
-                case 1:
-                    sdoc = _a.sent();
-                    return [4 /*yield*/, didResolver.resolve(issuerid)];
-                case 2:
-                    idoc = _a.sent();
-                    return [4 /*yield*/, subject()];
-                case 3:
-                    sub = _a.sent();
-                    issuer = {
-                        '@context': [
-                            "https://w3id.org/did/v1",
-                            sub
-                        ],
-                        id: issuerid,
-                        publicKey: idoc.publicKey,
-                        assertionMethod: idoc.id,
-                        authentication: sdoc.id
-                    };
-                    return [2 /*return*/, issuer];
-            }
-        });
-    });
-}
-issuer();
-//the issuer suite for signing VC      
-function issuersuite() {
-    return __awaiter(this, void 0, void 0, function () {
-        var iss, _a, Ed25519KeyPair, Ed25519Signature2018, keyPair, idoc, suite;
-        return __generator(this, function (_b) {
-            switch (_b.label) {
-                case 0: return [4 /*yield*/, issuer()];
-                case 1:
-                    iss = _b.sent();
-                    _a = require('jsonld-signatures'), Ed25519KeyPair = _a.Ed25519KeyPair, Ed25519Signature2018 = _a.suites.Ed25519Signature2018;
-                    return [4 /*yield*/, Ed25519KeyPair.generate()];
-                case 2:
-                    keyPair = _b.sent();
-                    return [4 /*yield*/, didResolver.resolve(issuerid)];
-                case 3:
-                    idoc = _b.sent();
-                    keyPair.id = iss.assertionMethod;
-                    keyPair.controller = idoc;
-                    suite = new Ed25519Signature2018({
-                        verificationMethod: keyPair.id,
-                        key: keyPair
-                    });
-                    // console.log(JSON.stringify(suite, null, 2));
-                    return [2 /*return*/, suite];
-            }
-        });
-    });
-}
-issuersuite();
 //the subject suite for signing VP
 function subjectsuite() {
     return __awaiter(this, void 0, void 0, function () {
@@ -229,18 +157,52 @@ subjectsuite();
 //the function which creates and verifies our customised credentials and presentations
 function credentials() {
     return __awaiter(this, void 0, void 0, function () {
-        var sdoc, idoc, issuercontroller, credential, issuer_suite, subject_suite, signedVC, vcresult, verifiableCredential, presentation, challenge, domain, vp, vpresult;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0: return [4 /*yield*/, didResolver.resolve(subjectid)];
+        var sdoc, fetch, response, data, idoc, sub, issuer, iss, _a, Ed25519KeyPair, Ed25519Signature2018, keyPair, suite, issuercontroller, credential, issuer_suite, subject_suite, signedVC, vcresult, verifiableCredential, presentation, challenge, domain, vp, vpresult;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0: return [4 /*yield*/, didResolver.resolve(subjectid)
+                    //fetches id issued by owner 
+                ];
                 case 1:
-                    sdoc = _a.sent();
-                    return [4 /*yield*/, didResolver.resolve(issuerid)];
+                    sdoc = _b.sent();
+                    fetch = require("node-fetch");
+                    return [4 /*yield*/, fetch('http://192.168.43.159')];
                 case 2:
-                    idoc = _a.sent();
-                    return [4 /*yield*/, issuer()];
+                    response = _b.sent();
+                    return [4 /*yield*/, response.text()
+                        //issuer id is resolved here
+                    ];
                 case 3:
-                    issuercontroller = _a.sent();
+                    data = _b.sent();
+                    return [4 /*yield*/, didResolver.resolve(data)];
+                case 4:
+                    idoc = _b.sent();
+                    return [4 /*yield*/, subject()];
+                case 5:
+                    sub = _b.sent();
+                    issuer = {
+                        '@context': [
+                            "https://w3id.org/did/v1",
+                            sub
+                        ],
+                        id: idoc.id,
+                        publicKey: idoc.publicKey,
+                        assertionMethod: idoc.id,
+                        authentication: sdoc.id
+                    };
+                    iss = issuer;
+                    _a = require('jsonld-signatures'), Ed25519KeyPair = _a.Ed25519KeyPair, Ed25519Signature2018 = _a.suites.Ed25519Signature2018;
+                    return [4 /*yield*/, Ed25519KeyPair.generate()];
+                case 6:
+                    keyPair = _b.sent();
+                    //const idoc = await didResolver.resolve(idoc.id)
+                    keyPair.id = iss.assertionMethod;
+                    keyPair.controller = idoc;
+                    suite = new Ed25519Signature2018({
+                        verificationMethod: keyPair.id,
+                        key: keyPair
+                    });
+                    issuercontroller = issuer;
                     credential = {
                         "@context": [
                             "https://www.w3.org/2018/credentials/v1",
@@ -256,54 +218,31 @@ function credentials() {
                             "id": sdoc.id
                         }
                     };
-                    return [4 /*yield*/, issuersuite()];
-                case 4:
-                    issuer_suite = _a.sent();
+                    issuer_suite = suite;
                     return [4 /*yield*/, subjectsuite()];
-                case 5:
-                    subject_suite = _a.sent();
-                    return [4 /*yield*/, vc.issue({ credential: credential, suite: issuer_suite })];
-                case 6:
-                    signedVC = _a.sent();
-                    return [4 /*yield*/, vc.verifyCredential({ credential: signedVC, documentLoader: documentLoader, suite: issuer_suite, controller: issuercontroller })];
                 case 7:
-                    vcresult = _a.sent();
+                    subject_suite = _b.sent();
+                    return [4 /*yield*/, vc.issue({ credential: credential, suite: issuer_suite })];
+                case 8:
+                    signedVC = _b.sent();
+                    return [4 /*yield*/, vc.verifyCredential({ credential: signedVC, documentLoader: documentLoader, suite: issuer_suite, controller: issuercontroller })];
+                case 9:
+                    vcresult = _b.sent();
+                    console.log(JSON.stringify(vcresult, null, 2));
                     verifiableCredential = [signedVC];
                     presentation = vc.createPresentation({ verifiableCredential: verifiableCredential });
                     challenge = "1f44d55f-f161-4938-a659-f8026467f126";
                     domain = "4jt78h47fh47";
                     return [4 /*yield*/, vc.signPresentation({ presentation: presentation, suite: subject_suite, challenge: challenge, domain: domain })];
-                case 8:
-                    vp = _a.sent();
+                case 10:
+                    vp = _b.sent();
                     return [4 /*yield*/, vc.verify({ presentation: vp, documentLoader: documentLoader, challenge: challenge, domain: domain, suite: [issuer_suite, subject_suite], controller: issuercontroller })];
-                case 9:
-                    vpresult = _a.sent();
-                    return [2 /*return*/];
+                case 11:
+                    vpresult = _b.sent();
+                    console.log(JSON.stringify(vpresult, null, 2));
+                    return [2 /*return*/, signedVC];
             }
         });
     });
 }
 credentials();
-//not working properly, code needs to be updated
-function verifyjsoncred() {
-    return __awaiter(this, void 0, void 0, function () {
-        var issuer_suite, issuercontroller, readcred, espcredentials, vcresult;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0: return [4 /*yield*/, issuersuite()];
-                case 1:
-                    issuer_suite = _a.sent();
-                    return [4 /*yield*/, issuer()];
-                case 2:
-                    issuercontroller = _a.sent();
-                    readcred = fs.readFile('/home/hiteshcmonga/Desktop/JS/fetchjson.json').toString();
-                    espcredentials = JSON.parse(readcred);
-                    return [4 /*yield*/, vc.verifyCredential({ credential: espcredentials, documentLoader: documentLoader, suite: issuer_suite, controller: issuercontroller })];
-                case 3:
-                    vcresult = _a.sent();
-                    return [2 /*return*/];
-            }
-        });
-    });
-}
-verifyjsoncred();
