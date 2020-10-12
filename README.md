@@ -23,8 +23,8 @@ For serialising the json data and loading the esp32 device certificates onto loc
 ##  Task Lists and progress
 - [X] Serialising JSON Data of ESP32
 - [X] Sending ESP32 JSON Data to webserver
-- [X] Fetch ESP32 JSON Data and storing it in local file
-- [ ] parsing locally stored json file and verifying the ESP32 credentials
+- [X] Fetch ESP32 DID
+- [X] verifying the ESP32 credentials
 - [X] POST client credentials 
 - [X] Parsing client credentials //code needs slight modification
 - [ ] verifying the signatures of client and sending feedback.
