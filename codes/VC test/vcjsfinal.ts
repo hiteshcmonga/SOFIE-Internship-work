@@ -1,3 +1,4 @@
+
 var fs = require("fs");
 const {extendContextLoader} = require('jsonld-signatures');
 const vc = require('vc-js');
@@ -12,23 +13,8 @@ import { resolver as naclDidResolver } from 'nacl-did'
 import { createIdentity, loadIdentity } from 'nacl-did'
 const didResolver = new Resolver({ nacl: naclDidResolver })
 
-//nacl ids of issuer and subject
-const issuerid = createIdentity().did
-const subjectid= createIdentity().did
-
-//fetching JSON data from ESP32 to verify device 
-const fetch = require("node-fetch");
-let url = 'http://192.168.43.4/credentials';
-fetch(url)
-.then(res => res.json())
-.then((out) => {
-    const jsonString = JSON.stringify(out, null, 2)
-    fs.writeFile('fetchjson.json', jsonString);
-})
-.catch(err => { throw err });
 
 //custom document Loader according to the required contexts
-
 const documentLoader = extendContextLoader(async url => {
        console.log("Looking for " + url)
        if(url=='https://www.w3.org/2018/credentials/v1') {
@@ -84,7 +70,9 @@ const documentLoader = extendContextLoader(async url => {
       throw new Error('No custom context support for ' + url);   
   });
 
-//customised subject document
+
+//subject id, document and suite 
+const subjectid= createIdentity().did
 async function subject() 
 {const sdoc = await didResolver.resolve(subjectid)
 const subject = {
@@ -96,34 +84,50 @@ const subject = {
 };
 return subject          
 }
-subject()  
+subject() 
+//the subject suite for signing VP
+async function subjectsuite(){
+  const sub= await subject()
+  const sdoc = await didResolver.resolve(subjectid)
+  const {Ed25519KeyPair, suites: {Ed25519Signature2018}} = require('jsonld-signatures');
+  const keyPair = await Ed25519KeyPair.generate();
+  keyPair.id = sub.id
+  keyPair.controller = sdoc
+  const suite = new Ed25519Signature2018({
+      verificationMethod: keyPair.id,
+      key: keyPair
+    });
+    return suite    
+  }
+  subjectsuite()
+  
 
-//customised issuer function, since the nacl document does not have assertionmethod for verification
-async function issuer() 
-{   
-    const sdoc = await didResolver.resolve(subjectid)
-    const idoc = await didResolver.resolve(issuerid)
-    const sub=await subject()
-  const issuer = {
-    '@context': [
-     "https://w3id.org/did/v1",
-     sub
-    ],
-    id:issuerid,
-    publicKey:idoc.publicKey,
-    assertionMethod:idoc.id,
-    authentication:sdoc.id
-  };  
-return issuer    
-}
-issuer()
+//the function which creates and verifies our customised credentials and presentations
+//it also contains issuer id , document and suite
+async function credentials(){  
+  const sdoc = await didResolver.resolve(subjectid)
 
-//the issuer suite for signing VC      
-async function issuersuite(){
-const iss= await issuer()    
+  //fetches id issued by owner 
+  const fetch = require("node-fetch");
+  let response = await fetch('http://192.168.43.159');
+  let data=await response.text()
+  //issuer id is resolved here
+  const idoc= await didResolver.resolve(data)
+  const sub=await subject()
+const issuer = {
+  '@context': [
+   "https://w3id.org/did/v1",
+   sub
+  ],
+  id:idoc.id,
+  publicKey:idoc.publicKey,
+  assertionMethod:idoc.id,
+  authentication:sdoc.id
+};  
+const iss= issuer
 const {Ed25519KeyPair, suites: {Ed25519Signature2018}} = require('jsonld-signatures');
 const keyPair = await Ed25519KeyPair.generate();
-const idoc = await didResolver.resolve(issuerid)
+//const idoc = await didResolver.resolve(idoc.id)
 keyPair.id = iss.assertionMethod
 keyPair.controller = idoc
     
@@ -131,33 +135,8 @@ keyPair.controller = idoc
       verificationMethod: keyPair.id,
       key: keyPair
     });
-   // console.log(JSON.stringify(suite, null, 2));
-return suite    
-}
-issuersuite()
+const issuercontroller= issuer 
 
-//the subject suite for signing VP
-async function subjectsuite(){
-const sub= await subject()
-const sdoc = await didResolver.resolve(subjectid)
-const {Ed25519KeyPair, suites: {Ed25519Signature2018}} = require('jsonld-signatures');
-const keyPair = await Ed25519KeyPair.generate();
-keyPair.id = sub.id
-keyPair.controller = sdoc
-const suite = new Ed25519Signature2018({
-    verificationMethod: keyPair.id,
-    key: keyPair
-  });
-  return suite    
-}
-subjectsuite()
-
-
-//the function which creates and verifies our customised credentials and presentations
-async function credentials(){  
-const sdoc = await didResolver.resolve(subjectid)
-const idoc = await didResolver.resolve(issuerid)
-const issuercontroller= await issuer()   
 const credential = {
     "@context": [
       "https://www.w3.org/2018/credentials/v1",
@@ -177,12 +156,15 @@ const credential = {
     },   
     
   };
-    const issuer_suite= await issuersuite()
+
+    const issuer_suite= suite
     const subject_suite= await subjectsuite()
     const signedVC = await vc.issue({credential, suite:issuer_suite});
     //console.log(JSON.stringify(signedVC, null, 2));
     const vcresult = await vc.verifyCredential({credential:signedVC, documentLoader, suite:issuer_suite, controller:issuercontroller});
     //console.log(JSON.stringify(vcresult, null, 2));
+
+
     const verifiableCredential = [signedVC];
     const presentation = vc.createPresentation({verifiableCredential});
     const challenge = "1f44d55f-f161-4938-a659-f8026467f126"
@@ -191,16 +173,6 @@ const credential = {
     //console.log(JSON.stringify(vp, null, 2))
     const vpresult = await vc.verify({presentation:vp, documentLoader, challenge,domain, suite:[issuer_suite, subject_suite], controller:issuercontroller});
     //console.log(JSON.stringify(vpresult, null, 2)) 
+    return signedVC
 }
 credentials()
-
-//not working properly, code needs to be updated
-async function verifyjsoncred(){
-const issuer_suite= await issuersuite()
-const issuercontroller= await issuer()  
-const readcred= fs.readFile('/home/hiteshcmonga/Desktop/JS/fetchjson.json').toString();
-let espcredentials = JSON.parse(readcred);
-const vcresult = await vc.verifyCredential({credential:espcredentials, documentLoader, suite:issuer_suite, controller:issuercontroller});
-}
-verifyjsoncred()
-
