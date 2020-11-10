@@ -15,6 +15,9 @@ Similar functions as mentioned in  above section with WolfSSL library being used
 )
 
 
+![wolfcrypt benchmarks](https://github.com/hiteshcmonga/SOFIE-Internship-work/blob/master/results/wolfcryptbenchmark.png)
+
+
 ## Flow and Implementation details
 
 For serialising the json data and loading the esp32 device certificates onto local webserver use ```serializejson.ino``` , the webserver is HTTP type and not secure, a HTTPS server for the same purpose can be implemented in future. The certificates are then fetched by client (added functionality in ```vcjsfinal.ts```) and stored in local file and then certificates are verified by client. The client then sends its credentials using POST request to local webserver and the client credentials are verified by ESP32 using crypto library by verifying signatures.
