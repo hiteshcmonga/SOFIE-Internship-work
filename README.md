@@ -8,14 +8,15 @@ Key generation, secret sharing using keys ,signing and verification done using E
 - [Micro-ecc](https://github.com/kmackay/micro-ecc)
 
 
-## Cryptographic functions using WolfSSL
+## Cryptographic functions using WolfSSL(Can try this later on)
 Similar functions as mentioned in  above section with WolfSSL library being used using ESP-IDF. 
 <b>Library used:</b>
 - [wolfSSL]( https://github.com/wolfSSL/wolfssl
-)
+) 
 
 
 ![wolfcrypt benchmarks](https://github.com/hiteshcmonga/SOFIE-Internship-work/blob/master/results/wolfcryptbenchmark.png)
+
 
 
 ## Flow and Implementation details
@@ -30,8 +31,8 @@ For serialising the json data and loading the esp32 device certificates onto loc
 - [X] verifying the ESP32 credentials
 - [X] POST client credentials 
 - [X] Parsing client credentials //code needs slight modification
-- [ ] verifying the signatures of client and sending feedback.
-- [ ] access control after mutual verification is done. 
+- [X] verifying the signatures of client and sending feedback.
+- [X] access control after mutual verification is done. 
 
 
 ## Steps for implementation
