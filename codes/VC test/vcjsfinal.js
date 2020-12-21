@@ -222,9 +222,9 @@ function credentials() {
                         console.log('DEVICE CREDENTIAL VERIFIED, now sending Client Credentials..... \n', JSON.stringify(vcresult, null, 2));
                         var axios = require('axios');
                         axios.post('http://192.168.43.159/', {
-                        "privateKey":"6990241810eedc6db88e4a39eafd137804a95f7b75cb4c54c807e609c3ed083e475cb21ae1b0d0bd43a597b05912fb3d7baa1ee4ebd683e0a543f748d5aa659e" //base58 to hex conversion of base58keyPair      
+                        "PublicKey":"475cb21ae1b0d0bd43a597b05912fb3d7baa1ee4ebd683e0a543f748d5aa659e" //base58 to hex conversion of base58keyPair      
                         })
-                       // axios.post('http://192.168.43.159/', {"PublicKey":"475cb21ae1b0d0bd43a597b05912fb3d7baa1ee4ebd683e0a543f748d5aa659e" })
+                       // axios.post('http://192.168.43.159/', {"":"" })
 
                     }
                     else
