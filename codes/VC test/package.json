@@ -14,9 +14,7 @@
     "vc-js": "^0.6.4",
     "fs": "^0.0.1-security",
     "jsonld-signatures":"6.0.0",
-    "did-resolver":"2.1.2",
-    
-
+    "did-resolver":"2.1.2"
   },
   "devDependencies": {
     "@types/node": "^14.0.9",
