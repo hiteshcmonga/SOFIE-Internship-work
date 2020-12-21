@@ -1,0 +1,36 @@
+{
+  "name": "did_test",
+  "version": "1.0.0",
+  "description": "test",
+  "main": "hello.js",
+  "dependencies": {
+    "babel-cli": "^6.26.0",
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "jose": "^1.27.0",
+    "nacl-did": "^1.0.1",
+    "node-fetch": "^2.6.0",
+    "vc-js": "^0.6.4",
+    "fs": "^0.0.1-security",
+    "jsonld-signatures":"6.0.0",
+    "did-resolver":"2.1.2"
+  },
+  "devDependencies": {
+    "@types/node": "^14.0.9",
+    "typescript": "^3.9.3"
+  },
+  "scripts": {
+    "start": "node hello.js"
+  },
+  "author": "Hitesh Monga",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hiteshcmonga/SOFIE-Internship-work.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hiteshcmonga/SOFIE-Internship-work/issues"
+  },
+  "homepage": "https://github.com/hiteshcmonga/SOFIE-Internship-work#readme"
+}
