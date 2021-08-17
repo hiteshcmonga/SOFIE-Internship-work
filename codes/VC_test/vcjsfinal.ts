@@ -1,13 +1,11 @@
 var fs = require("fs");
 const {extendContextLoader} = require('jsonld-signatures');
 const vc = require('vc-js');
-//const myCustomContext = require('./myCustomContext');
 
 //loading custom contexts, these are saved in a seperate folder of 'contexts' in the repo itself
 const v1 = require('./contexts/v1.json');
 const v1ex= require('./contexts/v1example.json');
 const odrl= require('./contexts/odrl.json'); 
-//const didv1= require('./contexts/did-v1.json'); not required anymore
 
 import { Resolver } from 'did-resolver'
 import { resolver as naclDidResolver } from 'nacl-did'
@@ -117,8 +115,6 @@ keyPair.controller = idoc
       verificationMethod: keyPair.id,
       key: keyPair
     });
-   // console.log(JSON.stringify(isssuite,null,2))
-//const idoc = await didResolver.resolve(issuerid)
 const issuercontroller= issuer 
 
 
@@ -127,7 +123,6 @@ const issuercontroller= issuer
 //const {Ed25519KeyPair, suites: {Ed25519Signature2018}} = require('jsonld-signatures');
   const keyPairsub = await Ed25519KeyPair.generate();
   const {sign}=keyPairsub.signer();
-  //console.log(signatureValue);
   keyPairsub.id = sub.id
   keyPairsub.controller = sdoc
   const subsuite = new Ed25519Signature2018({
@@ -176,8 +171,8 @@ const credential = {
     "id": oid1, // different public key
     "accessRights": ["read" , "write"] 
     },  
-    "Publickeyowner":"fc97e71f25c7f49d7d21553596a68b4255a9d2d8bcc00ee973c7ba549892f24b", //publickeyowner is verification of public key obtained from owner
-    "PublicKeyclient": "475cb21ae1b0d0bd43a597b05912fb3d7baa1ee4ebd683e0a543f748d5aa659e" //publickeyclient is for client verification ,while the rest of the certificate is for verification of the certificate obtained from owner by client,here there is base58 to hex conversion of base58keyPair  
+    "Publickeyowner":"fc97e71f25c7f49d7d21553596a68b4255a9d2d8bcc00ee973c7ba549892f24b", //publickeyowner is verification of public key obtained from owner, HARDCODED
+    "PublicKeyclient": "475cb21ae1b0d0bd43a597b05912fb3d7baa1ee4ebd683e0a543f748d5aa659e" //publickeyclient is for client verification ,while the rest of the certificate is for verification of the certificate obtained from owner by client,here there is base58 to hex conversion of base58keyPair, HARDCODED  
   };
   const jsonownercert=JSON.stringify(ownercert)
   console.log(jsonownercert)
@@ -193,12 +188,13 @@ const credential = {
     //now if the credential of ESP32 are verified by client the client will post its credentials over ESP32 webserver to get them verified
     console.log('DEVICE CREDENTIAL VERIFIED, now sending Client Credentials..... \n',JSON.stringify(vcresult, null, 2))
     const axios = require('axios');
-    axios.post('http://192.168.43.159/', {ownercert}); //once device is verified, client sends its certificate for verification
+    axios.post('http://192.168.43.159/clientcert', {ownercert}); //once device is verified, client sends its certificate for verification
   }
     
     else console.log('CREDENTIAL NOT VERIFIED')
 
 
+       
     //const verifiableCredential = [signedVC];
     //const presentation = vc.createPresentation({verifiableCredential}); //unsigned presentation
     //const challenge = "1f44d55f-f161-4938-a659-f8026467f126"
