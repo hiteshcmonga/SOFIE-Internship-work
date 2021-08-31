@@ -1,9 +1,6 @@
 //various libraries required
 #include "WiFi.h"
 #include "ESPAsyncWebServer.h"
-//#include "AsyncJson.h"
-//#include "ArduinoJson.h"
-//#include <HTTPClient.h>
 #include <Crypto.h>
 #include <Ed25519.h>
  
