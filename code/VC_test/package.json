@@ -1,0 +1,22 @@
+{
+  "name": "newrepojs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "module": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@digitalbazaar/did-method-key": "^2.0.0",
+    "@digitalbazaar/ed25519-signature-2020": "^3.0.0",
+    "@digitalbazaar/ed25519-verification-key-2020": "^3.1.0",
+    "@digitalbazaar/vc": "^1.0.0",
+    "axios": "^0.21.4",
+    "esm": "^3.2.25",
+    "jsonld-signatures": "^9.3.0",
+    "vc-js": "^0.6.4"
+  }
+}
