@@ -33,24 +33,27 @@ const didKeyDriver = require('@digitalbazaar/did-method-key').driver();
 
 const documentLoader = extendContextLoader(async url => {
   console.log("Looking for " + url)  //to check the documents required.
-  // this document contains varioud contexts and definations related to Verifiable Credentials(VC), Verifiable Presentation (VP) and information about various signature types
+  /* this document contains varioud contexts and definations 
+   related to Verifiable Credentials(VC), Verifiable Presentation (VP) 
+  and information about various signature types */
+
   if (url == 'https://www.w3.org/2018/credentials/v1') {
     return {
       contextUrl: null,
       documentUrl: url,
-      // this did key's context should resolve
-      // to the latest did-context
+      /* this did key's context should resolve
+       to the latest did-context*/
       document: v1
     };
   }
 
-  // this document contains example/format of a verifiable credential(academic), user can change the parameters according to need and the doc is linked with odrl file as well. 
+  /* this document contains example/format of a verifiable credential(academic)
+  , user can change the parameters according to need and
+   the doc is linked with odrl file as well. */
   if (url == 'https://www.w3.org/2018/credentials/examples/v1') {
     return {
       contextUrl: null,
       documentUrl: url,
-      // this did key's context should resolve
-      // to the latest did-context
       document: v1ex
     };
   }
@@ -59,19 +62,16 @@ const documentLoader = extendContextLoader(async url => {
     return {
       contextUrl: null,
       documentUrl: url,
-      // this did key's context should resolve
-      // to the latest did-context
       document: ed25519v1
     };
   }
 
-  // this custom context is required for running the above url, this provides info about usage of content and services.
+  /* this custom context is required for running the above url,
+   this provides info about usage of content and services.*/
   if (url == 'https://www.w3.org/ns/odrl.jsonld') {
     return {
       contextUrl: null,
       documentUrl: url,
-      // this did key's context should resolve
-      // to the latest did-context
       document: odrl
     };
   }
@@ -92,15 +92,7 @@ const documentLoader = extendContextLoader(async url => {
 });
 
 async function sendDeviceVC() {
-
-  // To fetch device's did
-  // comment this if device's DID needs to be hard-coded
-  const did = await axios({
-    url: "http://192.168.43.194/devicedid", 
-    method: "GET"
-  });
-  const Devicedid = String(did.data); // hard-coded did:key can be inserted here, for ex. "did:key:z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK"
-  
+  const Devicedid ="did:key:z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK"; 
   // Read Owner's keyPair stored in JSON file
   const serializedKeypair = fs.readFileSync('ownerKeyPair.json');
   let ownerCred = JSON.parse(serializedKeypair);
@@ -116,6 +108,16 @@ async function sendDeviceVC() {
   // Create verification suite
   const suite = new Ed25519Signature2020({ key: keyPair, verificationMethod: keyPair.id })
 
+  const date = new Date();
+  var year = date.getFullYear();
+  var month = date.getMonth();
+  var day = date.getDate();
+  var expireDate = new Date(year + 10, month, day);
+  
+  //RFC 3339 format
+  const expirationDate= expireDate.toISOString();
+  const issuanceDate = date.toISOString();
+
   // unsigned credential
   const credential = {
     "@context": [
@@ -125,8 +127,8 @@ async function sendDeviceVC() {
     ],
 
     "type": ["VerifiableCredential"],
-    "issuanceDate": "2012-01-01T19:23:24Z",
-    "expirationDate": "2022-01-01T19:23:24Z",
+    "issuanceDate": issuanceDate,
+    "expirationDate": expirationDate,
     "issuer": keyPair.controller,
     "credentialSubject": {
       "id": Devicedid, // Devicedid
@@ -135,6 +137,7 @@ async function sendDeviceVC() {
   
   // Create Signed VC
   const signedVC = await vc.issue({ credential, suite, documentLoader });
+  console.log(JSON.stringify(signedVC, null, 2));
   const result = await vc.verifyCredential({ credential: signedVC, suite, documentLoader });
-  console.log(JSON.stringify(result, null, 2));
+  //console.log(JSON.stringify(result, null, 2));
 } sendDeviceVC()
