@@ -137,7 +137,7 @@ async function sendDeviceVC() {
   
   // Create Signed VC
   const signedVC = await vc.issue({ credential, suite, documentLoader });
-  console.log(JSON.stringify(signedVC, null, 2));
   const result = await vc.verifyCredential({ credential: signedVC, suite, documentLoader });
   //console.log(JSON.stringify(result, null, 2));
+  const sendVC = await axios.post('http://192.168.43.194/devicevc',signedVC);
 } sendDeviceVC()
