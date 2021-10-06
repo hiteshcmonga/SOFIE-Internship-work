@@ -32,7 +32,7 @@ const didKeyDriver = require('@digitalbazaar/did-method-key').driver();
 // custom document Loader according to the required contexts
 
 const documentLoader = extendContextLoader(async url => {
-  console.log("Looking for " + url)  //to check the documents required.
+  //console.log("Looking for " + url)  //to check the documents required.
   /* this document contains varioud contexts and definations 
    related to Verifiable Credentials(VC), Verifiable Presentation (VP) 
   and information about various signature types */
