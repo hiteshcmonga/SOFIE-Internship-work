@@ -24,7 +24,17 @@ const didKeyDriver = require('@digitalbazaar/did-method-key').driver();
 import {documentLoader} from './documentLoader.js';
 
 async function sendDeviceVC() {
-  const Devicedid ="did:key:z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK"; 
+  const Devicedid ="did:key:z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK"; // Hard coded did for testing
+  
+  /*
+    // for fetching did from device
+    const did = await axios({
+    url: "http://192.168.43.194/devicedid", 
+    method: "GET"
+  });
+  const Devicedid = String(did.data); 
+  */
+  
   // Read Owner's keyPair stored in JSON file
   const serializedKeypair = fs.readFileSync('ownerKeyPair.json');
   let ownerCred = JSON.parse(serializedKeypair);
