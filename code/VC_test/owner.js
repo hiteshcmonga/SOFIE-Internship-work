@@ -21,20 +21,9 @@ import { Ed25519Signature2020, suiteContext } from '@digitalbazaar/ed25519-signa
 // didKey resolver
 const didKeyDriver = require('@digitalbazaar/did-method-key').driver();
 // custom document loader
-import {documentLoader} from './documentLoader.js';
+import { documentLoader } from './documentLoader.js';
 
-async function sendDeviceVC() {
-  const Devicedid ="did:key:z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK"; // Hard coded did for testing
-  
-  /*
-    // for fetching did from device
-    const did = await axios({
-    url: "http://192.168.43.194/devicedid", 
-    method: "GET"
-  });
-  const Devicedid = String(did.data); 
-  */
-  
+async function ownerKeyPair() {
   // Read Owner's keyPair stored in JSON file
   const serializedKeypair = fs.readFileSync('ownerKeyPair.json');
   let ownerCred = JSON.parse(serializedKeypair);
@@ -46,7 +35,20 @@ async function sendDeviceVC() {
   let assertionKey = didKey + "#" + keyPair.publicKeyMultibase;
   keyPair.id = assertionKey;
   keyPair.controller = didKey;
+  return keyPair;
+}
 
+async function sendDeviceVC() {
+  const Devicedid = "did:key:z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK"; // Hard coded did for testing
+  /*
+   // for fetching did from device
+   const did = await axios({
+   url: "http://192.168.43.194/devicedid", 
+   method: "GET"
+ });
+ const Devicedid = String(did.data); 
+ */
+  const keyPair = await ownerKeyPair();
   // Create verification suite
   const suite = new Ed25519Signature2020({ key: keyPair, verificationMethod: keyPair.id })
 
@@ -55,9 +57,9 @@ async function sendDeviceVC() {
   var month = date.getMonth();
   var day = date.getDate();
   var expireDate = new Date(year + 10, month, day);
-  
-  //RFC 3339 format
-  const expirationDate= expireDate.toISOString();
+
+  // RFC 3339 format
+  const expirationDate = expireDate.toISOString();
   const issuanceDate = date.toISOString();
 
   // unsigned credential
@@ -76,10 +78,9 @@ async function sendDeviceVC() {
       "id": Devicedid, // Devicedid
     }
   };
-  
+
   // Create Signed VC
   const signedVC = await vc.issue({ credential, suite, documentLoader });
   const result = await vc.verifyCredential({ credential: signedVC, suite, documentLoader });
-  //console.log(JSON.stringify(result, null, 2));
-  const sendVC = await axios.post('http://192.168.43.194/devicevc',signedVC);
+  const sendVC = await axios.post('http://192.168.43.194/devicevc', signedVC);
 } sendDeviceVC()
