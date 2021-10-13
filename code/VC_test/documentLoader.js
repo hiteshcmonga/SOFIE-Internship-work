@@ -9,6 +9,7 @@ const odrl = require('./contexts/odrl.json');
 const ed25519v1 = require('./contexts/ed25519-signature-2020-v1.json')
 
 const { extendContextLoader } = require('jsonld-signatures');
+const didKeyDriver = require('@digitalbazaar/did-method-key').driver();
 
 // custom document Loader according to the required contexts
 
