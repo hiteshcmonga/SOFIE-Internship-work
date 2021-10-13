@@ -9,15 +9,13 @@ import { Ed25519Signature2020, suiteContext } from '@digitalbazaar/ed25519-signa
 
 const vc = require('@digitalbazaar/vc');
 
-var jsonFile;
-
 import {clientVC} from './owner.js'
 import { documentLoader } from './documentLoader.js';
 
 async function createPresentation(){
   const verifiableCredential= clientVC;
   const presentation = vc.createPresentation({verifiableCredential});
-  const challenge="12345"; //fetched from device then imported from owner?
+  const challenge="12345"; // fetched from device then imported from owner?
   const suite = new Ed25519Signature2020({ key: keyPair, verificationMethod: keyPair.id })// which keyPair will be used or do we need a new one here?
   const vp = await vc.signPresentation({presentation, suite, challenge, documentLoader});
   console.log(vp);
