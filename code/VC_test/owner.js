@@ -16,50 +16,32 @@ import vc from '@digitalbazaar/vc';
 
 import { Ed25519VerificationKey2020 } from
   '@digitalbazaar/ed25519-verification-key-2020';
-import { Ed25519Signature2020, suiteContext } from '@digitalbazaar/ed25519-signature-2020';
+import { Ed25519Signature2020, suiteContext } from 
+  '@digitalbazaar/ed25519-signature-2020';
 
 // didKey resolver
 const didKeyDriver = require('@digitalbazaar/did-method-key').driver();
 
 // custom document loader
 import { documentLoader } from './documentLoader.js';
-import { generateKeyPair } from 'crypto';
 
-
-var jsonFile;
-
-//functionality to load KeyPair
-async function loadKeyPair() {
-  // Read Owner's keyPair stored in JSON file
-  const serializedKeypair = fs.readFileSync(jsonFile);
-  let cred = JSON.parse(serializedKeypair);
-  // Import the keyPair from storage.
-  const keyPair = await Ed25519VerificationKey2020.from(cred);
-  // Create didKey from multibase PublicKey.
+// generate owner keypair and store it into 'outputFile' provided by user
+async function generateOwnerKeyPair(outputFile) {
+  var keyPair = await Ed25519VerificationKey2020.generate();
   let didKey = "did:key:" + keyPair.publicKeyMultibase;
-  const StringdidKey = String(didKey);
   let assertionKey = didKey + "#" + keyPair.publicKeyMultibase;
   keyPair.id = assertionKey;
   keyPair.controller = didKey;
-  return keyPair;
-}
-
-async function generateOwnerKeyPair() {
-  jsonFile = 'ownerKeyPair.json'
-  const keyPair = await loadKeyPair();
-  return keyPair;
-}
-
-async function generateClientKeyPair() {
-  jsonFile = 'clientKeyPair.json'
-  const keyPair = await loadKeyPair();
-  return keyPair;
-}
+  keyPair=JSON.stringify((keyPair),null,2);
+  fs.writeFileSync(outputFile,keyPair);
+} 
 
 // unsigned credential
-var subId;
-async function unsignedCred() {
-  const issuer = await generateOwnerKeyPair();
+async function unsignedCred(did) {
+  //issuer can be changed
+  var issuer= fs.readFileSync('./ownerKeyPair.json');
+  issuer= JSON.parse(issuer);
+  const controller= issuer.controller;
   const date = new Date();
   var year = date.getFullYear();
   var month = date.getMonth();
@@ -78,67 +60,84 @@ async function unsignedCred() {
     "type": ["VerifiableCredential"],
     "issuanceDate": issuanceDate,
     "expirationDate": expirationDate,
-    "issuer": issuer.controller,
+    "issuer": controller,
     "credentialSubject": {
-      "id": subId,
+      "id": did,
     }
   };
-  
-  let data=JSON.stringify(credential, null, 2);
-  fs.writeFileSync("credential.json",data); /*if format needs to be changed or
-                                            modification in VC is required*/
-  /*after the program is compiled it stores client's DID as id, this id can be 
-  added in the JSON as per required.  */
   return credential;
-} unsignedCred();
+} 
 
 
-async function generateDeviceVC() {
-  // for fetching did from device
-  const deviceDid = "did:key:z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK"; // Hard coded did for testing
+async function generateDeviceVC(ownerKeyPair){ //, deviceURL) {
+  // Hard coded did for testing
+  const deviceDid = "did:key:z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK"; 
   /*
    // for fetching did from device,
    // the await function does not handle errors and we can use timeout,
    // if we do not get did from device
    const did = await axios({
-   url: "http://192.168.43.194/devicedid", 
+   url: deviceURL, 
    method: "GET"
  });
  const Devicedid = String(did.data); 
  */
-  subId = deviceDid;
-  const credential = await unsignedCred();
-  const keyPair = await generateOwnerKeyPair();
-  // Create verification suite
+  const credential = await unsignedCred(deviceDid);
+   // Import the keyPair from storage.
+  var keyPair = fs.readFileSync(ownerKeyPair);
+  keyPair = JSON.parse(keyPair);
+  // Load keyPair in Ed25519VerificationKey2020 format 
+  keyPair = await Ed25519VerificationKey2020.from(keyPair);
   const suite = new Ed25519Signature2020({ key: keyPair, verificationMethod: keyPair.id })
   const signedVC = await vc.issue({ credential, suite, documentLoader });
   //const result = await vc.verifyCredential({ credential: signedVC, suite, documentLoader });
   //const sendVC = await axios.post('http://192.168.43.194/devicevc', signedVC);
-  return signedVC;
-} generateDeviceVC()
+ return signedVC;
+} //generateDeviceVC('./ownerKeyPair.json')
 
-
-async function generateClientVC() {
-  const keyPair = await generateOwnerKeyPair();
-  const clientKeyPair = await generateClientKeyPair();
-  subId = clientKeyPair.controller;
-  const credential = await unsignedCred();
-  //credential["URL"]= '/sensor1';
-  //credential["methods"]= ["GET"];
-  // the custom context for "type": "AllowedURLs" is required.
+async function generateClientVC(ownerKeyPair,clientDid,outputFile){
+  const credential= await unsignedCred(clientDid);
+  var keyPair = fs.readFileSync(ownerKeyPair);
+  keyPair = JSON.parse(keyPair);
+  keyPair = await Ed25519VerificationKey2020.from(keyPair);
   const suite = new Ed25519Signature2020({ key: keyPair, verificationMethod: keyPair.id })
-  const signedVC = await vc.issue({ credential, suite, documentLoader });
+  const signedVC = JSON.stringify(await vc.issue({ credential, suite, documentLoader }),null,2);
+  fs.writeFileSync(outputFile,signedVC);
   return signedVC;
 }
-generateClientVC();
-export const clientVC = generateClientVC();
 
-/*
-Need to agree on library/ method for CLI arguments, but it will direct to following arguments:
-1. Generate Owner KeyPair
-2. Generate Client KeyPair
-3. Generate Certificate for Device
-4. Generate Certificate for Client:
-4a) Specify URL
-4b) Specify Method
-(4a and 4b are optional)*/
+
+/*provide first argument as the functionality that needs to be processed,
+and following arguments as parameters required*/
+async function cli(){
+var Args= process.argv;
+var option = process.argv.slice(2,3);
+console.log('myArgs: ', option);
+console.log('Choose functionality:',
+'\n', '[1]. Generate KeyPair, parameter : ownerKeyPair','\n',
+//device's URL is static for testing.
+'[2]. Generate Device VC, parameters : ownerKeyPair File,device URL',
+'\n','[3]. Generate Client VC, parameters : keyPair File, clientDid, outputFile',
+'\n');
+
+if(option=='1'){
+  //example input: node -r esm owner.js 1 ownerKeyPair.json
+  var ownerKeyPair= await generateOwnerKeyPair(Args[3]);
+  ownerKeyPair= JSON.parse(fs.readFileSync(Args[3]));
+  console.log('Generated KeyPair is:','\n',ownerKeyPair);
+}
+else if(option=='2'){
+  //example input: node -r esm owner.js 2 ownerKeyPair.json
+  var VC= await generateDeviceVC(Args[3]);
+  console.log('Generated DeviceVC is:','\n',VC);
+}
+
+else if(option=='3'){
+  // example:
+  // node -r esm owner.js 3 ownerKeyPair.json did:key:z6Mkf5rGMoatrSj1f4CyvuHBeXJELe9RPdzo2PKGNCKVtZxP clientcert.json
+  var VC= await generateClientVC(Args[3],Args[4],Args[5]);
+  console.log('Generated Client VC is:','\n',VC);
+}
+
+}
+cli();
