@@ -26,7 +26,7 @@ const didKeyDriver = require('@digitalbazaar/did-method-key').driver();
 import { documentLoader } from './documentLoader.js';
 
 // generate owner keypair and store it into 'outputFile' provided by user
-async function generateOwnerKeyPair(outputFile) {
+async function generateKeyPair(outputFile) {
   var keyPair = await Ed25519VerificationKey2020.generate();
   let didKey = "did:key:" + keyPair.publicKeyMultibase;
   let assertionKey = didKey + "#" + keyPair.publicKeyMultibase;
@@ -37,9 +37,9 @@ async function generateOwnerKeyPair(outputFile) {
 } 
 
 // unsigned credential
-async function unsignedCred(did) {
+async function unsignedCred(did,keyPair) {
   //issuer can be changed
-  var issuer= fs.readFileSync('./ownerKeyPair.json');
+  var issuer= fs.readFileSync(keyPair);
   issuer= JSON.parse(issuer);
   const controller= issuer.controller;
   const date = new Date();
@@ -82,7 +82,7 @@ async function generateDeviceVC(ownerKeyPair){ //, deviceURL) {
  });
  const Devicedid = String(did.data); 
  */
-  const credential = await unsignedCred(deviceDid);
+  const credential = await unsignedCred(deviceDid,ownerKeyPair);
    // Import the keyPair from storage.
   var keyPair = fs.readFileSync(ownerKeyPair);
   keyPair = JSON.parse(keyPair);
@@ -95,8 +95,8 @@ async function generateDeviceVC(ownerKeyPair){ //, deviceURL) {
  return signedVC;
 } //generateDeviceVC('./ownerKeyPair.json')
 
-async function generateClientVC(ownerKeyPair,clientDid,outputFile){
-  const credential= await unsignedCred(clientDid);
+async function generateClientVC(ownerKeyPair,clientDid, outputFile){
+  const credential= await unsignedCred(clientDid,ownerKeyPair);
   var keyPair = fs.readFileSync(ownerKeyPair);
   keyPair = JSON.parse(keyPair);
   keyPair = await Ed25519VerificationKey2020.from(keyPair);
@@ -120,21 +120,21 @@ console.log('Choose functionality:',
 '\n','[3]. Generate Client VC, parameters : keyPair File, clientDid, outputFile',
 '\n');
 
-if(option=='1'){
-  //example input: node -r esm owner.js 1 ownerKeyPair.json
-  var ownerKeyPair= await generateOwnerKeyPair(Args[3]);
-  ownerKeyPair= JSON.parse(fs.readFileSync(Args[3]));
-  console.log('Generated KeyPair is:','\n',ownerKeyPair);
+if(option=='genKeyPair'){
+  //example input: node -r esm owner.js genKeyPair ownerKeyPair.json
+  var keyPair= await generateKeyPair(Args[3]);
+  keyPair= JSON.parse(fs.readFileSync(Args[3]));
+  console.log('Generated KeyPair is:','\n',keyPair);
 }
-else if(option=='2'){
-  //example input: node -r esm owner.js 2 ownerKeyPair.json
+else if(option=='genDeviceVC'){
+  //example input: node -r esm owner.js genDeviceVC ownerKeyPair.json
   var VC= await generateDeviceVC(Args[3]);
   console.log('Generated DeviceVC is:','\n',VC);
 }
-
-else if(option=='3'){
+//instead of '3'
+else if(option=='genClientVC'){
   // example:
-  // node -r esm owner.js 3 ownerKeyPair.json did:key:z6Mkf5rGMoatrSj1f4CyvuHBeXJELe9RPdzo2PKGNCKVtZxP clientcert.json
+  // node -r esm owner.js genClientVC ownerKeyPair.json did:key:z6Mkf5rGMoatrSj1f4CyvuHBeXJELe9RPdzo2PKGNCKVtZxP clientcert.json
   var VC= await generateClientVC(Args[3],Args[4],Args[5]);
   console.log('Generated Client VC is:','\n',VC);
 }
