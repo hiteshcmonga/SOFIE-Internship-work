@@ -11,7 +11,7 @@
     for (uint8_t posn = 0; posn < len; ++posn) {
         Serial.print(hexchars[(x[posn] >> 4) & 0x0F]);
         Serial.print(hexchars[x[posn] & 0x0F]);
-    }s
+    }
     Serial.println();
   }*/
 
@@ -30,6 +30,7 @@ void setup() {
   didkey();
   sendDid();
   receiveVC();
+  sendDeviceVC();
   // clientCert();
   server.begin();
 }
