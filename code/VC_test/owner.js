@@ -55,23 +55,26 @@ async function unsignedCred(did,keyPair) {
     "@context": [
       "https://www.w3.org/2018/credentials/v1",
       "https://www.w3.org/2018/credentials/examples/v1",
-      "https://w3id.org/security/suites/ed25519-2020/v1"
+      "https://w3id.org/security/suites/ed25519-2020/v1",
+      "https://mm.aueb.gr/contexts/access_control/v1"
+
     ],
     "type": ["VerifiableCredential"],
     "issuanceDate": issuanceDate,
     "expirationDate": expirationDate,
     "issuer": controller,
     "credentialSubject": {
-      "id": did,
+      "id": did
     }
   };
   return credential;
 } 
 
 
-async function generateDeviceVC(ownerKeyPair){ //, deviceURL) {
+//device url should be homepage. For ex: http://192.168.43.159/
+async function generateDeviceVC(ownerKeyPair, deviceURL){ // {
   // Hard coded did for testing
-  const deviceDid = "did:key:z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK"; 
+  //const deviceDid = "did:key:z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK"; 
   /*
    // for fetching did from device,
    // the await function does not handle errors and we can use timeout,
@@ -80,23 +83,42 @@ async function generateDeviceVC(ownerKeyPair){ //, deviceURL) {
    url: deviceURL, 
    method: "GET"
  });
- const Devicedid = String(did.data); 
+ const deviceDid = String(did.data); 
  */
+
+  let getUrl= deviceURL + "devicedid";
+  const did = await axios({
+  url: getUrl, 
+  method: "GET"});
+
+  const deviceDid = String(did.data); 
   const credential = await unsignedCred(deviceDid,ownerKeyPair);
+
    // Import the keyPair from storage.
   var keyPair = fs.readFileSync(ownerKeyPair);
   keyPair = JSON.parse(keyPair);
   // Load keyPair in Ed25519VerificationKey2020 format 
   keyPair = await Ed25519VerificationKey2020.from(keyPair);
+
   const suite = new Ed25519Signature2020({ key: keyPair, verificationMethod: keyPair.id })
   const signedVC = await vc.issue({ credential, suite, documentLoader });
+
+  let postUrl= deviceURL + "devicevc"
   //const result = await vc.verifyCredential({ credential: signedVC, suite, documentLoader });
-  //const sendVC = await axios.post('http://192.168.43.194/devicevc', signedVC);
+  const sendVC = await axios.post(postUrl, signedVC);
  return signedVC;
 } //generateDeviceVC('./ownerKeyPair.json')
 
 async function generateClientVC(ownerKeyPair,clientDid, outputFile){
   const credential= await unsignedCred(clientDid,ownerKeyPair);
+  credential["type"]=["VerifiableCredential","AllowedURLs"];
+  credential["credentialSubject"]=
+  {
+    ["id"]:clientDid,
+    // url and method not found.
+    //["url"]:["httspsadaL:DSAD"],
+     // ["method"]:["Post"]
+    }
   var keyPair = fs.readFileSync(ownerKeyPair);
   keyPair = JSON.parse(keyPair);
   keyPair = await Ed25519VerificationKey2020.from(keyPair);
@@ -128,7 +150,7 @@ if(option=='genKeyPair'){
 }
 else if(option=='genDeviceVC'){
   //example input: node -r esm owner.js genDeviceVC ownerKeyPair.json
-  var VC= await generateDeviceVC(Args[3]);
+  var VC= await generateDeviceVC(Args[3], Args[4]);
   console.log('Generated DeviceVC is:','\n',VC);
 }
 //instead of '3'
